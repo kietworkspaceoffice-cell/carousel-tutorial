@@ -1,0 +1,142 @@
+<head>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+img {
+  height: 400px;
+  width: 400px;
+  border-radius: 10px;
+}
+
+.sliders {
+  display: flex;
+  gap: 10px;
+}
+
+.sliders>a {
+  text-decoration: none;
+  color: white;
+  font-size: 15px;
+  background-color: black;
+  text-align: center;
+  line-height: 30px;
+  width: 30px;
+  margin-bottom: 15px;
+  border-radius: 50%;
+}
+
+.slides {
+  display: flex;
+  width: 400px;
+  scroll-snap-type: x mandatory;
+  
+  
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.slides>div {
+  scroll-snap-align: center;
+  flex-shrink: 0;
+  position: relative;
+  margin-right: 20px;
+  transform: scale(1);
+  transition: transform 0.25s;
+}
+
+/* Ẩn scrollbar — hoạt động trên mọi trình duyệt */
+    .slides::-webkit-scrollbar {
+      display: none; /* Chrome, Edge, Safari */
+    }
+    .slides {
+      -ms-overflow-style: none;  /* IE, Edge cũ */
+      scrollbar-width: none;     /* Firefox */
+    }
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+</style>
+</head>
+<body>
+<div class="sliders">
+  <a href="#slide-1">1</a>
+  <a href="#slide-2">2</a>
+  <a href="#slide-3">3</a>
+  <a href="#slide-4">4</a>
+</div>
+<div class="slides">
+  <div id="slide-1">
+    <img src="https://github.com/kietworkspaceoffice-cell/asset/blob/main/desktop/image-gallery-cone.jpg?raw=true" alt="">
+  </div>
+  <div id="slide-2">
+    <img src="https://github.com/kietworkspaceoffice-cell/asset/blob/main/desktop/image-gallery-milkbottles.jpg?raw=true" alt="">
+  </div>
+  <div id="slide-3">
+    <img src="https://github.com/kietworkspaceoffice-cell/asset/blob/main/desktop/image-gallery-orange.jpg?raw=true" alt="">
+  </div>
+  <div id="slide-4">
+    <img src="https://github.com/kietworkspaceoffice-cell/asset/blob/main/desktop/image-gallery-sugarcubes.jpg?raw=true" alt="">
+  </div>
+</div>
+  
+<div class="arrows">
+  <button id="prev">←</button>
+  <button id="next">→</button>
+</div>
+
+<script>
+
+  const slides = document.querySelector('.slides');
+  const slideItems = document.querySelectorAll('.slides > div');
+  const next = document.getElementById('next');
+  const prev = document.getElementById('prev');
+
+let index = 0;
+let autoSlide; // lưu interval hiện tại
+const delay = 5000; // 5 giây
+
+function showSlide(i) {
+  slideItems[i].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+}
+
+// ---- Bắt đầu autoplay ----
+function startAutoSlide() {
+  // Xóa interval cũ (nếu có)
+  clearInterval(autoSlide);
+
+  // Tạo interval mới
+  autoSlide = setInterval(() => {
+    index = (index + 1) % slideItems.length;
+    showSlide(index);
+  }, delay);
+}
+
+// ---- Nút Next ----
+next.addEventListener('click', () => {
+  index = (index + 1) % slideItems.length;
+  showSlide(index);
+  startAutoSlide(); // 🔁 reset timer mỗi lần click
+});
+
+// ---- Nút Prev ----
+prev.addEventListener('click', () => {
+  index = (index - 1 + slideItems.length) % slideItems.length;
+  showSlide(index);
+  startAutoSlide(); // 🔁 reset timer mỗi lần click
+});
+
+// ---- Bắt đầu khi load trang ----
+startAutoSlide();
+
+
+</script>
+</body>
