@@ -96,58 +96,113 @@ body {
 <script>
 
 
-  const slides = document.querySelector('.slides');
-  const slideItems = document.querySelectorAll('.slides > div');
-  const next = document.getElementById('next');
-  const prev = document.getElementById('prev');
-  const anchors = document.querySelectorAll('.sliders a');
+// === 1️⃣ Biến cơ bản ===
+const slidesContainer = document.querySelector('.slides');
+const slideItems = document.querySelectorAll('.slides > div');
+const next = document.querySelector('.next'); // nút next
+const prev = document.querySelector('.prev'); // nút prev
+const anchors = document.querySelectorAll('.sliders a');
 
-let index = 0;
-let autoSlide; // lưu interval hiện tại
-const delay = 5000; // 5 giây
+let index = 0;           // lưu slide hiện tại
+const delay = 5000;      // autoplay 5 giây
+let autoSlide;           // lưu interval autoplay
+let scrollTimeout;       // debounce scroll
+let isScrolling = false; // trạng thái scroll mượt
 
+// === 2️⃣ Hàm scroll đến slide hiện tại ===
+function showSlide(i) {
+  isScrolling = true;
+  slideItems[i].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+
+  // debounce để reset isScrolling sau khi scroll hoàn tất
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    updateIndexByScroll(); // cập nhật index sau khi scroll
+    isScrolling = false;
+  }, 200); // 200ms sau scroll xong
+}
+
+// === 3️⃣ Cập nhật index theo scroll hiện tại ===
+function updateIndexByScroll() {
+  const containerCenter = slidesContainer.scrollLeft + slidesContainer.clientWidth / 2;
+
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+
+  slideItems.forEach((slide, i) => {
+    const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+    const distance = Math.abs(containerCenter - slideCenter);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = i;
+    }
+  });
+
+  index = closestIndex;
+}
+
+// === 4️⃣ Autoplay ===
+function autoNextSlide() {
+  if (isScrolling) return; // tránh nhảy khi scroll chưa kết thúc
+  updateIndexByScroll();
+  index = (index + 1) % slideItems.length;
+  showSlide(index);
+}
+
+function startAutoSlide() {
+  clearInterval(autoSlide);
+  autoSlide = setInterval(autoNextSlide, delay);
+}
+
+// === 5️⃣ Next / Prev button ===
+next.addEventListener('click', () => {
+  if (isScrolling) return; // tránh skip slide
+  index = (index + 1) % slideItems.length;
+  showSlide(index);
+  startAutoSlide();
+});
+
+prev.addEventListener('click', () => {
+  if (isScrolling) return;
+  index = (index - 1 + slideItems.length) % slideItems.length;
+  showSlide(index);
+  startAutoSlide();
+});
+
+// === 6️⃣ Anchor click đồng bộ index ===
 anchors.forEach(a => {
   a.addEventListener('click', (e) => {
-    e.preventDefault(); // ngăn trình duyệt nhảy trực tiếp
+    e.preventDefault();
     const targetId = a.getAttribute('href').replace('#', '');
     const targetSlide = document.getElementById(targetId);
-    index = Array.from(slideItems).indexOf(targetSlide); // cập nhật index
-    showSlide(index); // scroll mượt
-    startAutoSlide(); // reset autoplay nếu cần
+    index = Array.from(slideItems).indexOf(targetSlide);
+    showSlide(index);
+    startAutoSlide();
   });
 });
 
-function showSlide(i) {
-  slideItems[i].scrollIntoView({ behavior: 'smooth', inline: 'center' });
-}
+// === 7️⃣ Sticky boundary khi vuốt mobile ===
+slidesContainer.addEventListener('touchend', () => {
+  const scrollLeft = slidesContainer.scrollLeft;
+  const maxScroll = slidesContainer.scrollWidth - slidesContainer.clientWidth;
 
-// ---- Bắt đầu autoplay ----
-function startAutoSlide() {
-  // Xóa interval cũ (nếu có)
-  clearInterval(autoSlide);
-
-  // Tạo interval mới
-  autoSlide = setInterval(() => {
-    index = (index + 1) % slideItems.length;
-    showSlide(index);
-  }, delay);
-}
-
-// ---- Nút Next ----
-next.addEventListener('click', () => {
-  index = (index + 1) % slideItems.length;
-  showSlide(index);
-  startAutoSlide(); // 🔁 reset timer mỗi lần click
+  if (scrollLeft < 0) {
+    slidesContainer.scrollTo({ left: 0, behavior: 'smooth' });
+  } else if (scrollLeft > maxScroll) {
+    slidesContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
+  }
 });
 
-// ---- Nút Prev ----
-prev.addEventListener('click', () => {
-  index = (index - 1 + slideItems.length) % slideItems.length;
-  showSlide(index);
-  startAutoSlide(); // 🔁 reset timer mỗi lần click
+// === 8️⃣ Đồng bộ index khi scroll bằng tay ===
+slidesContainer.addEventListener('scroll', () => {
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    updateIndexByScroll();
+    isScrolling = false;
+  }, 100); // debounce 100ms
 });
 
-// ---- Bắt đầu khi load trang ----
+// === 9️⃣ Khởi động autoplay khi load trang ===
 startAutoSlide();
 
 
