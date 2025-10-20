@@ -95,14 +95,27 @@ body {
 
 <script>
 
+
   const slides = document.querySelector('.slides');
   const slideItems = document.querySelectorAll('.slides > div');
   const next = document.getElementById('next');
   const prev = document.getElementById('prev');
+  const anchors = document.querySelectorAll('.sliders a');
 
 let index = 0;
 let autoSlide; // lưu interval hiện tại
 const delay = 5000; // 5 giây
+
+anchors.forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault(); // ngăn trình duyệt nhảy trực tiếp
+    const targetId = a.getAttribute('href').replace('#', '');
+    const targetSlide = document.getElementById(targetId);
+    index = Array.from(slideItems).indexOf(targetSlide); // cập nhật index
+    showSlide(index); // scroll mượt
+    startAutoSlide(); // reset autoplay nếu cần
+  });
+});
 
 function showSlide(i) {
   slideItems[i].scrollIntoView({ behavior: 'smooth', inline: 'center' });
@@ -136,6 +149,7 @@ prev.addEventListener('click', () => {
 
 // ---- Bắt đầu khi load trang ----
 startAutoSlide();
+
 
 
 </script>
